@@ -33,7 +33,6 @@
 #include "config.h"
 #endif
 
-#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -178,7 +177,7 @@ static int parse_tone(super_tone_tx_step_t **tree, xmlDocPtr doc, xmlNsPtr ns, x
         cur = cur->next;
     }
     /*endwhile*/
-    return 0;
+    return  0;
 }
 /*- End of function --------------------------------------------------------*/
 
@@ -209,39 +208,33 @@ static void parse_tone_set(xmlDocPtr doc, xmlNsPtr ns, xmlNodePtr cur)
 
 static void get_tone_set(const char *tone_file, const char *set_id)
 {
-    xmlParserCtxtPtr ctxt;
     xmlDocPtr doc;
     xmlNsPtr ns;
     xmlNodePtr cur;
+#if 0
+    xmlValidCtxt valid;
+#endif
     xmlChar *x;
 
-    ns = NULL;
+    ns = NULL;    
     xmlKeepBlanksDefault(0);
     xmlCleanupParser();
-
-    if ((ctxt = xmlNewParserCtxt()) == NULL)
+    doc = xmlParseFile(tone_file);
+    if (doc == NULL)
     {
-        fprintf(stderr, "Failed to allocate parser context\n");
-        printf("Test failed\n");
+        fprintf(stderr, "No document\n");
         exit(2);
     }
-    /* parse the file, activating the DTD validation option */
-    if ((doc = xmlCtxtReadFile(ctxt, tone_file, NULL, XML_PARSE_XINCLUDE | XML_PARSE_DTDVALID)) == NULL)
+    /*endif*/
+    xmlXIncludeProcess(doc);
+#if 0
+    if (!xmlValidateDocument(&valid, doc))
     {
-        fprintf(stderr, "Failed to read the XML document\n");
-        printf("Test failed\n");
+        fprintf(stderr, "Invalid document\n");
         exit(2);
     }
-    if (ctxt->valid == 0)
-    {
-        fprintf(stderr, "Failed to validate the XML document\n");
-    	xmlFreeDoc(doc);
-        xmlFreeParserCtxt(ctxt);
-        printf("Test failed\n");
-        exit(2);
-    }
-    xmlFreeParserCtxt(ctxt);
-
+    /*endif*/
+#endif
     /* Check the document is of the right kind */
     if ((cur = xmlDocGetRootElement(doc)) == NULL)
     {
