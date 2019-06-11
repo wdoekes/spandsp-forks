@@ -1,0 +1,30 @@
+Description: Make sure tests are not run in parallel
+Authr: Tzafrir Cohen <tzafrir@debian.org>
+
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -377,3 +377,5 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g1
+ 	sox sound_c1.wav -r8000 sound_c1_8k.wav
+ 	sox sound_c3.wav -r8000 sound_c3_8k.wav
+ 	rm sound_c1.wav sound_c3.wav
++
++.NOTPARALLEL:
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
+@@ -1382,6 +1382,8 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g1
+ 	sox sound_c1.wav -r8000 sound_c1_8k.wav
+ 	sox sound_c3.wav -r8000 sound_c3_8k.wav
+ 	rm sound_c1.wav sound_c3.wav
++
++.NOTPARALLEL:
+ 
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+--- spandsp-0.0.6~pre21.orig/test-data/itu/fax/Makefile.am
++++ spandsp-0.0.6~pre21/test-data/itu/fax/Makefile.am
+@@ -153,3 +153,5 @@ mixed_size_pages.tif: ${MIXED_SIZE_PAGES
+ 
+ striped.tif: generate_striped_pages$(EXEEXT)
+ 	./generate_striped_pages$(EXEEXT)
++
++.NOTPARALLEL: dithered.tif mixed_size_pages.tif striped.tif

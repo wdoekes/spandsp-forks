@@ -1,0 +1,16 @@
+Description: Fix FTBFS on powerpcspe
+ This patch fixes FTBFS on powerpcspe by making sure powerpc optimizations
+ are not done on powerpcspe where certain asm is not available
+Author: Roland Stigge <stigge@antcom.de>
+
+--- spandsp-0.0.6~pre20.orig/src/spandsp/fast_convert.h
++++ spandsp-0.0.6~pre20/src/spandsp/fast_convert.h
+@@ -195,7 +195,7 @@ extern "C"
+     {
+         return (long int) (x);
+     }
+-#elif defined(__ppc__)  ||   defined(__powerpc__)
++#elif (defined(__ppc__)  ||   defined(__powerpc__)) && !defined(__NO_FPRS__)
+     static __inline__ long int lfastrint(register double x)
+     {
+         int res[2];
