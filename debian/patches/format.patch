@@ -1,0 +1,14 @@
+From: Tzafrir Cohen <tzafrir@debian.org>
+Subject: Fix a potential format string issue
+
+--- a/tests/echo_tests.c
++++ b/tests/echo_tests.c
+@@ -621,7 +621,7 @@ static void run_test(echo_can_state_t *c
+ static void print_test_title(const char *title)
+ {
+     if (quiet == FALSE) 
+-        printf(title);
++        printf("s", title);
+ }
+ /*- End of function --------------------------------------------------------*/
+ 

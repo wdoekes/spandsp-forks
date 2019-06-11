@@ -1,0 +1,3 @@
+#!/bin/sh
+./configure --enable-tests
+make check
