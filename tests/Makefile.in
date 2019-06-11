@@ -1609,6 +1609,8 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g168_css$(EXEEXT)
 	sox sound_c3.wav -r8000 sound_c3_8k.wav
 	rm sound_c1.wav sound_c3.wav
 
+.NOTPARALLEL:
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

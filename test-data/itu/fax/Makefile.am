@@ -153,3 +153,5 @@ mixed_size_pages.tif: ${MIXED_SIZE_PAGES}
 
 striped.tif: generate_striped_pages$(EXEEXT)
 	./generate_striped_pages$(EXEEXT)
+
+.NOTPARALLEL: dithered.tif mixed_size_pages.tif striped.tif

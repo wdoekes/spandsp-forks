@@ -621,7 +621,7 @@ static void run_test(echo_can_state_t *ctx, int16_t (*tx_source)(void), int16_t 
 static void print_test_title(const char *title)
 {
     if (quiet == FALSE) 
-        printf(title);
+        printf("s", title);
 }
 /*- End of function --------------------------------------------------------*/
 

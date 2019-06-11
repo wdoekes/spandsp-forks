@@ -230,9 +230,6 @@ hdlc_tests_LDADD = $(LIBDIR) -lspandsp
 ima_adpcm_tests_SOURCES = ima_adpcm_tests.c
 ima_adpcm_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
 
-image_translate_tests_SOURCES = image_translate_tests.c
-image_translate_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
-
 line_model_tests_SOURCES = line_model_tests.c
 line_model_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
 
@@ -381,3 +378,5 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g168_css$(EXEEXT)
 	sox sound_c1.wav -r8000 sound_c1_8k.wav
 	sox sound_c3.wav -r8000 sound_c3_8k.wav
 	rm sound_c1.wav sound_c3.wav
+
+.NOTPARALLEL:

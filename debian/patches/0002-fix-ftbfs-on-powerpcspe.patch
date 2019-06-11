@@ -1,0 +1,21 @@
+From: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Date: Fri, 15 Apr 2016 09:51:51 +0200
+Subject: fix-ftbfs-on-powerpcspe
+
+---
+ src/spandsp/fast_convert.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/spandsp/fast_convert.h b/src/spandsp/fast_convert.h
+index 10679ea..9652c54 100644
+--- a/src/spandsp/fast_convert.h
++++ b/src/spandsp/fast_convert.h
+@@ -195,7 +195,7 @@ extern "C"
+     {
+         return (long int) (x);
+     }
+-#elif defined(__ppc__)  ||   defined(__powerpc__)
++#elif (defined(__ppc__)  ||   defined(__powerpc__)) && !defined(__NO_FPRS__)
+     static __inline__ long int lfastrint(register double x)
+     {
+         int res[2];
