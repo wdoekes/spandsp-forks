@@ -1,0 +1,21 @@
+commit 12aec908bb9a350b6e43a3040d3020fb301dab06
+Author: Steve Underwood <steveu@coppice.org>
+Date:   Wed Jul 18 21:46:58 2012 +0800
+
+    Various tweaks to spandsp. Cleaned up a few MSVC issues with spandsp
+
+(truncated by wdoekes, on 2019-06-26 to only to len=-1)
+
+diff --git a/src/t30.c b/src/t30.c
+index 41e0c26..b03a252 100644
+--- a/src/t30.c
++++ b/src/t30.c
+@@ -6235,7 +6235,7 @@ SPAN_DECLARE(int) t30_non_ecm_get_chunk(void *user_data, uint8_t buf[], int max_
+         break;
+     default:
+         span_log(&s->logging, SPAN_LOG_WARNING, "t30_non_ecm_get_chunk in bad state %s\n", state_names[s->state]);
+-        len = 0;
++        len = -1;
+         break;
+     }
+     /*endswitch*/

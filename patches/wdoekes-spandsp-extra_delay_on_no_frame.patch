@@ -1,0 +1,35 @@
+Subject: add extra delay in case "no new frame" causes an endless loop
+From: Walter Doekes <walter+github@wjd.nu>
+Forwarded: no
+Date: 2019-06-26
+Bugs: wdoekes/spandsp-forks#1
+
+diff --git a/src/t38_terminal.c b/src/t38_terminal.c
+index ae87d8e..ae313e7 100644
+--- a/src/t38_terminal.c
++++ b/src/t38_terminal.c
+@@ -1004,11 +1008,15 @@ static int stream_hdlc(t38_terminal_state_t *s)
+             /* The above step should have got the next HDLC step ready - either another frame, or an instruction to stop transmission. */
+             if (fe->hdlc_tx.len >= 0)
+             {
++                int extra_delay = 0;
+                 if (fe->hdlc_tx.len == 0)
+                 {
+                     /* Now, how did we get here? We have finished a frame, but have no new frame to
+                        send, and no end of transmission condition. */
+                     span_log(&s->logging, SPAN_LOG_FLOW, "No new frame or end transmission condition.\n");
++                    /* In case the delay is 0, we'd probably be in an endless loop. Add some delay
++                       so the caller can break out. */
++                    extra_delay = 1000;
+                 }
+                 /*endif*/
+                 /* Finish the current frame off, and prepare for the next one. */
+@@ -1018,7 +1026,7 @@ static int stream_hdlc(t38_terminal_state_t *s)
+                 /*endif*/
+                 fe->timed_step = T38_TIMED_STEP_HDLC_MODEM_3;
+                 /* We should now wait enough time for everything to clear through an analogue modem at the far end. */
+-                delay = bits_to_us(s, fe->hdlc_tx.extra_bits);
++                delay = bits_to_us(s, fe->hdlc_tx.extra_bits) || extra_delay;
+             }
+             else
+             {

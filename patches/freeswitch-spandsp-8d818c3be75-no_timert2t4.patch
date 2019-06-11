@@ -1,0 +1,20 @@
+commit 8d818c3be75033e9bbe3b4e74439ed0371cd41bd
+Author: Steve Underwood <steveu@coppice.org>
+Date:   Mon Jul 28 23:35:06 2014 +0800
+
+    Fixes for DTC handling in the T.38 gateway
+
+(truncated by wdoekes, on 2019-06-26 to only to only drop timer_t2_t4_stop)
+
+diff --git a/libs/spandsp/src/t30.c b/libs/spandsp/src/t30.c
+index 784a146c1c..bd24898b3e 100644
+--- a/src/t30.c
++++ b/src/t30.c
+@@ -6747,7 +6747,6 @@ SPAN_DECLARE(void) t30_front_end_status(void *user_data, int status)
+             /* Cancel any receive timeout, and declare that a receive signal is present,
+                since the front end is explicitly telling us we have seen something. */
+             s->rx_signal_present = true;
+-            timer_t2_t4_stop(s);
+             break;
+         }
+         /*endswitch*/

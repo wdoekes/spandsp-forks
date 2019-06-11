@@ -1,0 +1,16 @@
+Subject: remove useless jpeg dependency
+From: Walter Doekes <walter+github@wjd.nu>
+Forwarded: no
+Date: 2019-06-26
+
+--- a/configure.ac	2019-06-26 15:54:47.672115741 +0200
++++ b/configure.ac	2019-06-26 15:55:03.420201898 +0200
+@@ -545,8 +545,6 @@ else
+     AC_CHECK_HEADERS([tiffio.h])
+     AC_CHECK_LIB([tiff], [TIFFOpen], , AC_MSG_ERROR("Cannot build without libtiff (does your system require a libtiff-devel package?)"), -lm)
+ fi
+-AC_CHECK_HEADERS([jpeglib.h])
+-AC_CHECK_LIB([jpeg], [jpeg_start_compress])
+ 
+ TESTLIBS="$SIMLIBS $TESTLIBS"
+ 

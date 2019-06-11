@@ -1,0 +1,21 @@
+From: Tzafrir Cohen <tzafrir@debian.org>
+Date: Fri, 15 Apr 2016 09:51:51 +0200
+Subject: Fix a potential format string issue
+
+---
+ tests/echo_tests.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/echo_tests.c b/tests/echo_tests.c
+index 3f11885..5808b1e 100644
+--- a/tests/echo_tests.c
++++ b/tests/echo_tests.c
+@@ -621,7 +621,7 @@ static void run_test(echo_can_state_t *ctx, int16_t (*tx_source)(void), int16_t
+ static void print_test_title(const char *title)
+ {
+     if (quiet == false)
+-        printf(title);
++        printf("s", title);
+ }
+ /*- End of function --------------------------------------------------------*/
+ 

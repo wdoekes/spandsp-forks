@@ -1,0 +1,43 @@
+From: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Date: Fri, 15 Apr 2016 09:51:51 +0200
+Subject: serial-tests
+
+---
+ test-data/itu/fax/Makefile.am | 2 ++
+ tests/Makefile.am             | 2 ++
+ tests/Makefile.in             | 2 ++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/test-data/itu/fax/Makefile.am b/test-data/itu/fax/Makefile.am
+index 595b5f7..47b868d 100644
+--- a/test-data/itu/fax/Makefile.am
++++ b/test-data/itu/fax/Makefile.am
+@@ -153,3 +153,5 @@ mixed_size_pages.tif: ${MIXED_SIZE_PAGES}
+ 
+ striped.tif: generate_striped_pages$(EXEEXT)
+ 	./generate_striped_pages$(EXEEXT)
++
++.NOTPARALLEL: dithered.tif mixed_size_pages.tif striped.tif
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 8adfa40..8fbc725 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -381,3 +381,5 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g168_css$(EXEEXT)
+ 	sox sound_c1.wav -r8000 sound_c1_8k.wav
+ 	sox sound_c3.wav -r8000 sound_c3_8k.wav
+ 	rm sound_c1.wav sound_c3.wav
++
++.NOTPARALLEL:
+diff --git a/tests/Makefile.in b/tests/Makefile.in
+index 868b1b0..728487c 100644
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
+@@ -1609,6 +1609,8 @@ sound_c1_8k.wav sound_c3_8k.wav: make_g168_css$(EXEEXT)
+ 	sox sound_c3.wav -r8000 sound_c3_8k.wav
+ 	rm sound_c1.wav sound_c3.wav
+ 
++.NOTPARALLEL:
++
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+ .NOEXPORT:

@@ -1,0 +1,38 @@
+From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+Date: Fri, 15 Apr 2016 09:54:04 +0200
+Subject: Remove tests related to lenna-colour.tif
+
+---
+ test-data/local/Makefile.am   |   1 -
+ tests/Makefile.am             |   3 -
+ tests/image_translate_tests.c | 452 ------------------------------------------
+ tests/regression_tests.sh     |   9 -
+ 4 files changed, 465 deletions(-)
+ delete mode 100644 tests/image_translate_tests.c
+
+diff --git a/test-data/local/Makefile.am b/test-data/local/Makefile.am
+index 5c8ad55..c9d32b6 100644
+--- a/test-data/local/Makefile.am
++++ b/test-data/local/Makefile.am
+@@ -22,7 +22,6 @@ DIST_SUBDIRS =
+ 
+ EXTRA_DIST = dam9_lpc55.wav \
+              dam9.wav \
+-             lenna-colour.tif \
+              short_nb_voice.wav \
+              short_wb_voice.wav
+ 
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 8fbc725..05b4dbf 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -230,9 +230,6 @@ hdlc_tests_LDADD = $(LIBDIR) -lspandsp
+ ima_adpcm_tests_SOURCES = ima_adpcm_tests.c
+ ima_adpcm_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
+ 
+-image_translate_tests_SOURCES = image_translate_tests.c
+-image_translate_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
+-
+ line_model_tests_SOURCES = line_model_tests.c
+ line_model_tests_LDADD = -L$(top_builddir)/spandsp-sim -lspandsp-sim $(LIBDIR) -lspandsp
+ 

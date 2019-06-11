@@ -1,0 +1,2 @@
+rm test-data/local/lenna-colour.tif
+rm -r debian

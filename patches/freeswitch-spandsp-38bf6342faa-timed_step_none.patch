@@ -1,0 +1,35 @@
+commit 38bf6342faaa8da9f3b44e1b8a02dd626598f07b
+Author: Steve Underwood <steveu@coppice.org>
+Date:   Wed Dec 12 03:23:27 2012 +0800
+
+    Various tweaks to spandsp, including starting to add some genuine ARM
+    optimisations.
+
+(truncated by wdoekes, on 2019-06-26 to only to set T38_TIMED_STEP_NONE)
+
+diff --git a/libs/spandsp/src/t38_terminal.c b/libs/spandsp/src/t38_terminal.c
+index 3a300ced9e..747832cabd 100644
+--- a/src/t38_terminal.c
++++ b/src/t38_terminal.c
+@@ -852,6 +852,10 @@ static int stream_non_ecm(t38_terminal_state_t *s)
+                 fe->timed_step = fe->queued_timed_step;
+                 fe->queued_timed_step = T38_TIMED_STEP_NONE;
+             }
++            else
++            {
++                fe->timed_step = T38_TIMED_STEP_NONE;
++            }
+             /*endif*/
+             return delay;
+         }
+@@ -1049,6 +1053,10 @@ static int stream_hdlc(t38_terminal_state_t *s)
+                 fe->timed_step = fe->queued_timed_step;
+                 fe->queued_timed_step = T38_TIMED_STEP_NONE;
+             }
++            else
++            {
++                fe->timed_step = T38_TIMED_STEP_NONE;
++            }
+             /*endif*/
+             return delay;
+         }
