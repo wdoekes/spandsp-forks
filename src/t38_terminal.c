@@ -634,6 +634,8 @@ static void send_hdlc(void *user_data, const uint8_t *msg, int len)
 
 static __inline__ int bits_to_us(t38_terminal_state_t *s, int bits)
 {
+    if (s->t38_fe.tx_bit_rate == 0)
+        return 1; /* OSSO/WJD/20130918:infloop_after_fax: break out earlier */
     if (s->t38_fe.us_per_tx_chunk == 0  ||  s->t38_fe.tx_bit_rate == 0)
         return 0;
     /*endif*/

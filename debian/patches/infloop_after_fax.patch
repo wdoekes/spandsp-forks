@@ -1,0 +1,296 @@
+Description: Catch infinite fax loop eating up memory in spandsp caller
+Author: Walter Doekes <wjdoekes@osso.nl>
+Date: 2013-09-18
+
+(See internal docs here
+ https://github.com/VoIPGRID/spandspvg/commit/\
+ 802173ca09cbb805547fc8f0f24bd816c79d09d5 )
+
+
+# -- EMAIL -- ##########################################################
+
+
+# Hi,
+# 
+# I'm sorry for mailing this to you directly instead of to the mailing
+# list. But as far as I can tell, it's a security issue: bad data can
+# bring a PBX system down.
+# 
+# 
+# On rare occasions I get the "No new frame or end transmission
+# condition" warning in my logs. Unfortunately it is so rare that I only
+# have the FLOW logs and no PCAPs.
+# 
+# I therefore haven't been able to reproduce it. But it has been able to
+# bring my PBX down every time it happened.
+# 
+# 
+# First I get:
+# 
+#   WARNING T.30 Page did not end cleanly
+# 
+# And later, I get a negative byte, which seems odd:
+# 
+#   FLOW T.38 Tx    98: (0) data v21/hdlc-data + -1 byte(s)
+# 
+# Fax is supposedly complete:
+# 
+#   FLOW T.38T FAX exchange complete
+# 
+# But then I get a seemingly endless loop of frames.
+# 
+# First this:
+# 
+#   FLOW T.38T No new frame or end transmission condition.
+#   FLOW T.38 Tx    99: (0) data v21/hdlc-fcs-OK + 0 byte(s)
+#   FLOW T.38 Tx    99: IFP c0 01 20
+#   FLOW T.38 Tx   100: (0) data ???/hdlc-data + 0 byte(s)
+#   FLOW T.38 Tx   100: IFP fe 01 00
+#   FLOW T.30 Send complete in phase T30_PHASE_CALL_FINISHED, state 32
+# 
+# Followed by this:
+# 
+#   FLOW T.38T No new frame or end transmission condition.
+#   FLOW T.38 Tx   101: (0) data ???/hdlc-fcs-OK + 0 byte(s)
+#   FLOW T.38 Tx   101: IFP fe 01 20
+#   FLOW T.38 Tx   102: (0) data ???/hdlc-data + 0 byte(s)
+#   FLOW T.38 Tx   102: IFP fe 01 00
+# 
+# And that last bit continues ad infinitum with increasing Tx sequence
+# numbers.
+# 
+# As far as I can tell this comes from a loop in t38_terminal.c in
+# stream_hdlc() where we're bouncing between these states without ever
+# leaving the function:
+# 
+#   T38_TIMED_STEP_HDLC_MODEM_3 and T38_TIMED_STEP_HDLC_MODEM_4
+# 
+# And because we're never leaving, frames get enqueued in the user
+# process without ever getting handled. That in turn causes the process
+# to run out of memory.
+# 
+# 
+# 
+# Info:
+# 
+# I'm using
+# http://soft-switch.org/downloads/spandsp/spandsp-0.0.6pre21.tgz
+# 
+# It communicates with a customized version of Asterisk 10.
+# 
+# Rare log message that did not only occur for this incident:
+# - FLOW T.30 Changing from phase T30_PHASE_E to T30_PHASE_D_TX
+# 
+# Rare log messages that ONLY occur for this incident:
+# - FLOW T.30 Send complete in phase T30_PHASE_D_TX, state 2
+# - FLOW T.38 Tx    98: (0) data v21/hdlc-data + -1 byte(s)
+# 
+# 
+# 
+# Questions:
+# 
+# - Am I right in sending this to you directly? Or do you want it on the
+#   spandsp list anyway?
+# 
+# - What can I get you that helps in debugging the problem? If you want
+#   the entire FLOW log, does it contain the actual fax (private customer
+#   data)?
+# 
+# - Is there an easy fix so I can break out of stream_hldc() when this
+#   happens so my process doesn't die because of a lack of resources.
+# 
+# 
+# Regards, Walter Doekes OSSO B.V.
+
+
+# -- DESCRIPTION -- ####################################################
+
+
+# See the email for a short description of the problem.
+# 
+# BEWARE: the pcap (and the log that the pcap was created from, by
+# https://github.com/ossobv/voiputil/blob/master/spandspflow2pcap.py )
+EDIT: https://github.com/asterisk/asterisk/blob/master/contrib/scripts/spandspflow2pcap.py
+# contain a customer fax.
+# 
+# 
+# The current fix is to:
+# 
+#    Never have bits_to_us return 0 when the tx_bit_rate is 0.
+#    The lack of sleep means that the process may continue feeding
+#    empty packets back to asterisk without having asterisk
+#    re-gain control. (And commencing abortion of the call.)
+# 
+# Like this:
+# 
+# ====
+# 
+# --- a/src/t38_terminal.c
+# +++ b/src/t38_terminal.c
+# @@ -606,6 +606,8 @@ static void send_hdlc(void *user_data, const uint8_t *msg, int len)
+# 
+#  static __inline__ int bits_to_us(t38_terminal_state_t *s, int bits)
+#  {
+# +    if (s->t38_fe.tx_bit_rate == 0)
+# +        return 1; /* OSSO/WJD/20130918:infloop_after_fax: break out earlier */
+#      if (s->t38_fe.ms_per_tx_chunk == 0  ||  s->t38_fe.tx_bit_rate == 0)
+#          return 0;
+#      /*endif*/
+# 
+# ====
+# 
+# With the above in place, we don't seem to need the
+# break-when-the-queued-packets-are-too-many patch anymore.
+# 
+# For reference sake, that patch (against asterisk) was this:
+# 
+# ====
+# 
+# diff --git a/res/res_fax_spandsp.c b/res/res_fax_spandsp.c
+# index 5b4d48a..ebcec36 100644
+# --- a/res/res_fax_spandsp.c
+# +++ b/res/res_fax_spandsp.c
+# @@ -155,6 +155,8 @@ struct spandsp_pvt {
+# 
+#      struct ast_timer *timer;
+#      AST_LIST_HEAD(frame_queue, ast_frame) read_frames;
+# +    unsigned read_frames_size; /* XXX-WJD: fax infmem workaround */
+# +    unsigned read_frames_total;
+# 
+#      int v21_detected;
+#      modem_connect_tones_rx_state_t *tone_state;
+# @@ -185,7 +187,11 @@ static void session_destroy(struct spandsp_pvt *p)
+#      fax_release(&p->fax_state);
+#      t38_terminal_release(&p->t38_state);
+# 
+# +    /* XXX-WJD: 2013-06-04 */
+# +    ast_verb(1, "h1=leven_gered h2=fax_nomem h3=destroy frames=%u/%u\n", p->read_frames_size, p->read_frames_total);
+# +
+#      while ((f = AST_LIST_REMOVE_HEAD(&p->read_frames, frame_list))) {
+# +        /*p->read_frames_size -= 1;*/
+#          ast_frfree(f);
+#      }
+#  }
+# @@ -206,6 +212,75 @@ static int t38_tx_packet_handler(t38_core_state_t *t38_core_state, void *data, c
+# 
+#      struct ast_frame *f = &fax_frame;
+# 
+# +    /* When issue, then:
+# +     *   s->details->caps == 10 (AST_FAX_TECH_RECEIVE | AST_FAX_TECH_T38)
+# +     * This is probably caused by an infinite loop in spandsp, at:
+# +
+# +    #1326 0x00000000004e1e34 in ast_frdup (f=0x7f2465c9cdd0) at frame.c:483
+# +    #1327 0x00000000004e187f in ast_frisolate (fr=0x7f2465c9cdd0) at frame.c:368
+# +    #1328 0x00007f24781519ea in t38_tx_packet_handler (t38_core_state=0x2b100f8,
+# +        data=0x20a6ef8, buf=0x7f2465c9cf10 "\376\001 ", len=3, count=1) at res_fax_spandsp.c:215
+# +    #1329 0x00007f2477ee34e5 in t38_core_send_data (s=0x2b100f8, data_type=<value optimized out>,
+# +        field_type=<value optimized out>, field=<value optimized out>,
+# +        field_len=<value optimized out>, category=3) at t38_core.c:840
+# +
+# +        Here we can loop in stream_hdlc between:
+# +        s->t38_fe.timed_step
+# +            T38_TIMED_STEP_HDLC_MODEM_2
+# +            T38_TIMED_STEP_HDLC_MODEM_3
+# +            T38_TIMED_STEP_HDLC_MODEM_4
+# +
+# +    (gdb) print s->t38_fe
+# +    $1 = {iaf = 2, ms_per_tx_chunk = 30, chunking_modes = 4, t38 = {
+# +        tx_packet_handler = 0x7f24781518f4 <t38_tx_packet_handler>, tx_packet_user_data = 0x20a6ef8, 
+# +        rx_indicator_handler = 0x7f2477ee81e0 <process_rx_indicator>, 
+# +        rx_data_handler = 0x7f2477ee82f0 <process_rx_data>, 
+# +        rx_missing_handler = 0x7f2477ee7ca0 <process_rx_missing>, rx_user_data = 0x2aff240, 
+# +        data_rate_management_method = 2, data_transport_protocol = 0, fill_bit_removal = 0, 
+# +        mmr_transcoding = 0, jbig_transcoding = 0, max_buffer_size = 400, max_datagram_size = 93, 
+# +        t38_version = 0, allow_for_tep = 0, fastest_image_data_rate = 14400, category_control = {3, 1, 
+# +          3, 1, 3}, check_sequence_numbers = 1, tx_seq_no = 32381, rx_expected_seq_no = 68, 
+# +        current_rx_indicator = 0, current_rx_data_type = -1, current_rx_field_type = -1, 
+# +        current_tx_indicator = 3, v34_rate = 0, missing_packets = 0, logging = {level = 3074, 
+# +          samples_per_second = 8000, elapsed_samples = 0, tag = 0x0, protocol = 0x7f2477f1b3f1 "T.38", 
+# +          span_message = 0x7f2478152b2c <spandsp_log>, span_error = 0}}, timed_step = 35, 
+# +      rx_data_missing = 0, octets_per_data_packet = 1, hdlc_rx = {
+# +        buf = "\377\023\200\000N8", ' ' <repeats 17 times>, '\000' <repeats 236 times>, len = 0}, 
+# +      hdlc_tx = {
+# +        buf = "\377\310\337 w\037#\001\211\001\001\001\030\004\004\004\004\004\004\004\004\004\004", '\000' <repeats 236 times>, len = 0, ptr = 0, extra_bits = 38}, non_ecm_trailer_bytes = 0, 
+# +      next_tx_indicator = 3, current_tx_data_type = -1, rx_signal_present = 0, current_rx_type = 9, 
+# +      current_tx_type = 9, tx_bit_rate = 0, samples = 59840, next_tx_samples = 59427, 
+# +      timeout_rx_samples = 0}
+# +
+# +    #1330 0x00007f2477ee92af in stream_hdlc (s=0x2aff240) at t38_terminal.c:934
+# +    #1331 0x00007f2477ee9858 in t38_terminal_send_timeout (s=0x2aff240,
+# +        samples=<value optimized out>) at t38_terminal.c:1061
+# +    #1332 0x00007f24781533ca in spandsp_fax_read (s=0x20a6ef8) at res_fax_spandsp.c:625
+# +    #1333 0x00007f2484c1ba60 in generic_fax_exec (chan=0x7f24802fd3a8, details=0x219dcd8,
+# +        reserved=0x20a6ef8, token=0x0) at res_fax.c:1475
+# +    #1334 0x00007f2484c2145e in receivefax_exec (chan=0x7f24802fd3a8, data=0x7f2465ca0960
+# +        "/tmp/fax-ID356441-voipgrid-ua1-tc2-1370345835.80652.tiff,f") at res_fax.c:1898
+# +    #1335 0x0000000000516a4c in pbx_exec (c=0x7f24802fd3a8, app=0x1ed9770, data=0x7f2465ca0960
+# +        "/tmp/fax-ID356441-voipgrid-ua1-tc2-1370345835.80652.tiff,f") at pbx.c:1561
+# +    #1336 0x0000000000520d7a in pbx_extension_helper (c=0x7f24802fd3a8, con=0x0, context=0x7f24802fdc78
+# +        "osvpi_route_fax_step", exten=0x7f24802fdcc8 "ID356441", priority=9, label=0x0, 
+# +        callerid=0x7f2480491580 "+31503096673", action=E_SPAWN, found=0x7f2465ca2c8c, combined_find_spawn=1) at pbx.c:4401
+# +    #1337 0x0000000000522c00 in ast_spawn_extension (c=0x7f24802fd3a8, context=0x7f24802fdc78
+# +        "osvpi_route_fax_step", exten=0x7f24802fdcc8 "ID356441", priority=9, callerid=0x7f2480491580 "+31503096673",
+# +        found=0x7f2465ca2c8c, combined_find_spawn=1) at pbx.c:5064
+# +    #1338 0x00000000005234bc in __ast_pbx_run (c=0x7f24802fd3a8, args=0x0) at pbx.c:5160
+# +    #1339 0x00000000005254ce in pbx_thread (data=0x7f24802fd3a8) at pbx.c:5532
+# +    #1340 0x000000000058028d in dummy_start (data=0x7f2480153650) at utils.c:1014
+# +    #1341 0x00007f24884ef9ca in start_thread () from /lib/libpthread.so.0
+# +    #1342 0x00007f2488fcd70d in clone () from /lib/libc.so.6
+# +
+# +     */
+# +    if (p->read_frames_size > 10000) {
+# +        /* 10000 frames of 336 bytes.. is 3MB.. that's more than enough. */
+# +        ast_log(LOG_ERROR, "h1=leven_gered h2=fax_nomem h3=aborting frames=%u/%u\n", p->read_frames_size, p->read_frames_total);
+# +        /* Time to cancel this call. */
+# +        return -1;
+# +    }
+# 
+#      /* TODO: Asterisk does not provide means of resending the same packet multiple
+#        times so count is ignored at the moment */
+# @@ -228,6 +303,9 @@ static int t38_tx_packet_handler(t38_core_state_t *t38_core_state, void *data, c
+#          /* no need to lock, this all runs in the same thread */
+#          AST_LIST_INSERT_TAIL(&p->read_frames, f, frame_list);
+#          res = 0;
+# +        /* increase frame count */
+# +        p->read_frames_size += 1;
+# +        p->read_frames_total += 1;
+#      }
+# 
+#      return res;
+# @@ -526,6 +604,8 @@ static void *spandsp_fax_new(struct ast_fax_session *s, struct ast_fax_tech_toke
+#      }
+# 
+#      AST_LIST_HEAD_INIT(&p->read_frames);
+# +    p->read_frames_size = 0;
+# +    p->read_frames_total = 0;
+# 
+#      if (s->details->caps & AST_FAX_TECH_RECEIVE) {
+#          caller_mode = 0;
+# @@ -625,8 +705,11 @@ static struct ast_frame *spandsp_fax_read(struct ast_fax_session *s)
+#      }
+# 
+#      if (p->ist38) {
+# +//        ast_verb(1, "XXXWJD: before '%d'\n", s->id);
+#          t38_terminal_send_timeout(&p->t38_state, SPANDSP_FAX_SAMPLES);
+# +//        ast_verb(1, "XXXWJD: after '%d'\n", s->id);
+#          if ((f = AST_LIST_REMOVE_HEAD(&p->read_frames, frame_list))) {
+# +            p->read_frames_size -= 1;
+#              return f;
+#          }
+#      } else {
+# 
+# ====
+
+diff --git a/src/t38_terminal.c b/src/t38_terminal.c
+index 0656043..fadeac6 100644
+--- a/src/t38_terminal.c
++++ b/src/t38_terminal.c
+@@ -634,6 +634,8 @@ static void send_hdlc(void *user_data, const uint8_t *msg, int len)
+ 
+ static __inline__ int bits_to_us(t38_terminal_state_t *s, int bits)
+ {
++    if (s->t38_fe.tx_bit_rate == 0)
++        return 1; /* OSSO/WJD/20130918:infloop_after_fax: break out earlier */
+     if (s->t38_fe.us_per_tx_chunk == 0  ||  s->t38_fe.tx_bit_rate == 0)
+         return 0;
+     /*endif*/
