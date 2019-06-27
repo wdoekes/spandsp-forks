@@ -1,10 +1,13 @@
 0001-serial-tests.patch
 0003-Fix-a-potential-format-string-issue.patch
 0004-Remove-tests-related-to-lenna-colour.tif.patch
+0005-use_provided_libdir
 
 freeswitch-spandsp-12aec908bb9-len-1.patch
 freeswitch-spandsp-38bf6342faa-timed_step_none.patch
 freeswitch-spandsp-8d818c3be75-no_timert2t4.patch
 
+wdoekes-disable-missing-testdata.patch
 wdoekes-drop-useless-jpeg.patch
-wdoekes-spandsp-extra_delay_on_no_frame.patch
+wdoekes-extra_delay_on_no_frame.patch
+wdoekes-fix-v18-tests.patch

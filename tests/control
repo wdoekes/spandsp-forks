@@ -1,3 +1,0 @@
-Tests: check
-Restrictions: rw-build-tree allow-stderr
-Depends: @builddeps@

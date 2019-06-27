@@ -1,7 +1,7 @@
-Subject: remove useless jpeg dependency
+Subject: Remove useless libjpeg dependency
 From: Walter Doekes <walter+github@wjd.nu>
-Forwarded: no
 Date: 2019-06-26
+Forwarded: no
 
 --- a/configure.ac	2019-06-26 15:54:47.672115741 +0200
 +++ b/configure.ac	2019-06-26 15:55:03.420201898 +0200

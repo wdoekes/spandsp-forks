@@ -1,0 +1,39 @@
+Subject: Fix v18 test, adding '!'  because of spandsp-20140716.tar.gz
+From: Walter Doekes <walter+github@wjd.nu>
+Date: 2019-06-27
+Forwarded: no
+
+In spandsp-20140716.tar.gz, the following change was done:
+
+> --- a/src/v18.c
+> +++ b/src/v18.c
+> @@ -131,6 +138,7 @@ struct dtmf_to_ascii_s
+>  
+>  static const struct dtmf_to_ascii_s dtmf_to_ascii[] =
+>  {
+> +    {"###0", '!'},
+>      {"###1", 'C'},
+>      {"###2", 'F'},
+>      {"###3", 'I'},
+> @@ -140,7 +148,6 @@ static const struct dtmf_to_ascii_s dtmf_to_ascii[] =
+>      {"###7", 'U'},
+>      {"###8", 'X'},
+>      {"###9", ';'},
+> -    {"###0", '!'},
+>      {"##*1", 'A'},
+>      {"##*2", 'D'},
+>      {"##*3", 'G'},
+
+diff --git a/tests/v18_tests.c b/tests/v18_tests.c
+index a445b0e..01ee18f 100644
+--- a/tests/v18_tests.c
++++ b/tests/v18_tests.c
+@@ -1658,7 +1658,7 @@ static int test_x_06(void)
+ 
+     v18_decode_dtmf(NULL, result, dtmf);
+ 
+-    ref = "\b \n\n\n?\n\n\n  %+().+,-.0123456789:;(=)"
++    ref = "\b \n\n\n?\n\n\n  !%+().+,-.0123456789:;(=)"
+           "?XABCDEFGHIJKLMNOPQRSTUVWXYZ\xC6\xD8\xC5"
+           " abcdefghijklmnopqrstuvwxyz\xE6\xF8\xE5 \b";
+ 

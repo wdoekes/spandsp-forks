@@ -1,0 +1,168 @@
+Subject: Disable tests that lack test-data
+From: Walter Doekes <walter+github@wjd.nu>
+Date: 2019-06-27
+Forwarded: no
+
+diff --git a/tests/ademco_contactid_tests.c b/tests/ademco_contactid_tests.c
+index 0835928..dd4061c 100644
+--- a/tests/ademco_contactid_tests.c
++++ b/tests/ademco_contactid_tests.c
+@@ -371,11 +371,13 @@ int main(int argc, char *argv[])
+         return 2;
+     }
+ 
++#if 0 /* NO MITEL WAV */
+     if (mitel_cm7291_side_2_and_bellcore_tests())
+     {
+         printf("Tests failed\n");
+         return 2;
+     }
++#endif
+ 
+     if (end_to_end_tests())
+     {
+diff --git a/tests/dtmf_rx_tests.c b/tests/dtmf_rx_tests.c
+index 67adbdb..ec676df 100644
+--- a/tests/dtmf_rx_tests.c
++++ b/tests/dtmf_rx_tests.c
+@@ -911,7 +911,9 @@ int main(int argc, char *argv[])
+     {
+         time(&now);
+         mitel_cm7291_side_1_tests();
++#if 0 /* NO MITEL WAVS */
+         mitel_cm7291_side_2_and_bellcore_tests();
++#endif
+         dial_tone_tolerance_tests();
+         callback_function_tests();
+         printf("    Passed\n");
+diff --git a/tests/modem_connect_tones_tests.c b/tests/modem_connect_tones_tests.c
+index 7b72926..bb91619 100644
+--- a/tests/modem_connect_tones_tests.c
++++ b/tests/modem_connect_tones_tests.c
+@@ -1315,6 +1315,7 @@ int main(int argc, char *argv[])
+     }
+     /*endif*/
+ 
++#if 0 /* NO MITEL WAVS */
+     if ((test_list & PERFORM_TEST_8))
+     {
+         /* Talk-off test */
+@@ -1389,6 +1390,7 @@ int main(int argc, char *argv[])
+         printf("Test passed.\n");
+     }
+     /*endif*/
++#endif
+ 
+     if (decode_test_file)
+     {
+diff --git a/tests/regression_tests.sh b/tests/regression_tests.sh
+index 2b4f15a..f5c37d7 100755
+--- a/tests/regression_tests.sh
++++ b/tests/regression_tests.sh
+@@ -271,32 +271,52 @@ then
+ fi
+ echo g711_tests completed OK
+ 
+-./g722_tests >$STDOUT_DEST 2>$STDERR_DEST
+-RETVAL=$?
+-if [ $RETVAL != 0 ]
+-then
+-    echo g722_tests failed!
+-    exit $RETVAL
+-fi
+-echo g722_tests completed OK
+-
+-./g726_tests >$STDOUT_DEST 2>$STDERR_DEST
+-RETVAL=$?
+-if [ $RETVAL != 0 ]
+-then
+-    echo g726_tests failed!
+-    exit $RETVAL
+-fi
+-echo g726_tests completed OK
++# Requires: http://penta3.ufrgs.br/normasITU/ITUTSOFT/G722/DISK1-1/
++# 791cebbbfd6bb952a635469391159e5a  T1C1.XMT
++# 353c2241daab10e75637b88fc9fd4ef9  T1C2.XMT
++# a3c303962669c214d03dbe12ce54943d  T1D3.COD
++# b47ed02f3b445fc9fe32b6c6fb49c19c  T2R1.COD
++# 9cf78479a686c2dda50d9f397c3a1fa2  T2R2.COD
++# 8d0a3396bba802446636579958a21b67  T3H1.RC0
++# 028921d40f2df517badcb8c1513492b0  T3H2.RC0
++# 6e4691cfa7cc392a0adcb77091ad9a47  T3H3.RC0
++# 8222711b749d5afd4638dd9026d26a32  T3L1.RC1
++# 6d8ba5c8571766c36c34cb9952b0bb4e  T3L1.RC2
++# 11cd325fe2423b5b7a72dd6eeae7546d  T3L1.RC3
++# c66fe368afd939d1e82e1129fc71b8e3  T3L2.RC1
++# 5e19badae114cd90bff11b551a243186  T3L2.RC2
++# 024030776e21553af5c9ceb37b455352  T3L2.RC3
++# edcda602d05b43d004196327caa1f3d5  T3L3.RC1
++# 3c9e12be6f091aac38d33ea3397b2e51  T3L3.RC2
++# 9c563092c193e8444ed20635a07aacaa  T3L3.RC3
++# ./g722_tests >$STDOUT_DEST 2>$STDERR_DEST
++# RETVAL=$?
++# if [ $RETVAL != 0 ]
++# then
++#     echo g722_tests failed!
++#     exit $RETVAL
++# fi
++# echo g722_tests completed OK
++
++# Requires: http://penta3.ufrgs.br/normasITU/ITUTSOFT/G726/DISK1/INPUT/
++#./g726_tests >$STDOUT_DEST 2>$STDERR_DEST
++#RETVAL=$?
++#if [ $RETVAL != 0 ]
++#then
++#    echo g726_tests failed!
++#    exit $RETVAL
++#fi
++#echo g726_tests completed OK
+ 
+-./gsm0610_tests >$STDOUT_DEST 2>$STDERR_DEST
+-RETVAL=$?
+-if [ $RETVAL != 0 ]
+-then
+-    echo gsm0610_tests failed!
+-    exit $RETVAL
+-fi
+-echo gsm0610_tests completed OK
++# Requires: Seq01.inp
++#./gsm0610_tests >$STDOUT_DEST 2>$STDERR_DEST
++#RETVAL=$?
++#if [ $RETVAL != 0 ]
++#then
++#    echo gsm0610_tests failed!
++#    exit $RETVAL
++#fi
++#echo gsm0610_tests completed OK
+ 
+ ./hdlc_tests >$STDOUT_DEST 2>$STDERR_DEST
+ RETVAL=$?
+diff --git a/tests/sig_tone_tests.c b/tests/sig_tone_tests.c
+index fcd572c..d21d190 100644
+--- a/tests/sig_tone_tests.c
++++ b/tests/sig_tone_tests.c
+@@ -649,7 +649,9 @@ int main(int argc, char *argv[])
+         }
+         /*endswitch*/
+         map_frequency_response(&rx_state, template);
++#if 0 /* NO MITEL WAVS */
+         speech_immunity_tests(&rx_state);
++#endif
+         level_and_ratio_tests(&rx_state, fc);
+         sequence_tests(&tx_state, &rx_state, munge);
+     }
+diff --git a/tests/super_tone_rx_tests.c b/tests/super_tone_rx_tests.c
+index 6b62aab..edaf946 100644
+--- a/tests/super_tone_rx_tests.c
++++ b/tests/super_tone_rx_tests.c
+@@ -501,7 +501,9 @@ int main(int argc, char *argv[])
+     file_name = IN_FILE_NAME;
+     file_decode_tests(super, file_name);
+ 
++#if 0 /* NO MITEL WAVS */
+     talk_off_tests(super);
++#endif
+ 
+     super_tone_rx_free(super);
+     printf("Done\n");
+

@@ -4,6 +4,6 @@
 version=3
 
 # <Webpage URL> <string match>
-opts=uversionmangle=s/pre/~pre/ \
- http://www.soft-switch.org/downloads/spandsp/ spandsp-(.*)\.tgz debian svn-upgrade
+opts=dversionmangle=s/\+dfsg// \
+ https://www.soft-switch.org/downloads/spandsp/ spandsp-(.*)\.tar.gz debian
 

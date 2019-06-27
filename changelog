@@ -1,16 +1,45 @@
-spandsp (0.0.6+dfsg+snap20180108-0osso0+deb9) stretch; urgency=low
+spandsp (0.0.6+dfsg+snap20180108-0osso0.4+deb9) stretch; urgency=low
 
-  * Test version of snapshot build.
+  * This is a test(!) version of the snapshot build
   * Remove 0002-fix-ftbfs-on-powerpcspe.patch fixed by spandsp-20140726.tar.gz
-  * Alter 0004-Remove-tests-related-to-lenna-colour.tif.patch, not removing
-    the (now unused) test file.
+  * Remove "Rules-Requires-Root" and move compat back to 9
+  * Alter the 0001-serial-tests.patch for build speed
+  * Refresh the 0004-Remove-tests-related-to-lenna-colour.tif.patch
   * Add freeswitch-spandsp-12aec908bb9-len-1.patch
   * Add freeswitch-spandsp-38bf6342faa-timed_step_none.patch
   * Add freeswitch-spandsp-8d818c3be75-no_timert2t4.patch
+  * Add wdoekes-disable-missing-testdata.patch
   * Add wdoekes-drop-useless-jpeg.patch
-  * Add wdoekes-spandsp-extra_delay_on_no_frame.patch
+  * Add wdoekes-extra_delay_on_no_frame.patch
+  * Add wdoekes-fix-v18-tests.patch
+  * Make sure the tests actually get run
+  * Re-add --parallel for parallel builds with debhelper 9
 
- -- Walter Doekes (work) <wjdoekes@osso.nl>  Wed, 26 Jun 2019 15:36:26 +0200
+ -- Walter Doekes (work) <wjdoekes@osso.nl>  Thu, 27 Jun 2019 15:57:55 +0200
+
+spandsp (0.0.6+dfsg-2) unstable; urgency=medium
+
+  * Team upload
+  * Move DueDiligence document back to libspandsp-dev (Closes: #918982)
+  * Set Rules-Requires-Root to no
+
+ -- Bernhard Schmidt <berni@debian.org>  Fri, 11 Jan 2019 18:17:42 +0100
+
+spandsp (0.0.6+dfsg-1) unstable; urgency=medium
+
+  * Team upload for QA purposes
+
+  * Add patch to use provided libdir on x86-64
+  * Update d/control (URLs, maintainers, Vcs)
+  * Drop autopkgtest, run tests during build
+  * Update Standards-Version
+  * Update to debhelper 11
+  * Update description to be a complete sentence (Closes: #760089)
+
+  [ Tzafrir Cohen ]
+  * Fix format.patch
+
+ -- Bernhard Schmidt <berni@debian.org>  Tue, 08 Jan 2019 17:19:54 +0100
 
 spandsp (0.0.6+dfsg-0.1) unstable; urgency=medium
 

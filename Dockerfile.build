@@ -7,7 +7,7 @@ osdistshort=deb
 oscodename=${3:-stretch}    # stretch/jessie
 upname=spandsp
 upversion=${1:-0.0.6+dfsg+snap20180108}   # spandsp version
-debversion=${2:-0osso0}     # deb build version, e.g. 0osso1
+debversion=${2:-0osso0.4}   # deb build version, e.g. 0osso1
 echo "Usage: $0 0.0.6+dfsg+snap20180108 0osso1 stretch" >&2
 
 # Docker disallows certain tokens in versions.

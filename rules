@@ -5,12 +5,43 @@
 INC_DIR=$(CURDIR)/debian/tmp/usr/include
 INC_DIR_ARCH=$(INC_DIR)/$(DEB_BUILD_MULTIARCH)
 
+SCRIPT_TESTS = \
+	fax_tests.sh regression_tests.sh
+SKIPPED_SCRIPT_TESTS = \
+	# unknown \
+	tsb85_tests.sh \
+	tsb85_extra_tests.sh \
+	v42bis_tests.sh
+EXTRA_TESTS = \
+	bitstream_tests line_model_tests make_g168_css plc_tests \
+	rfc2198_sim_tests sig_tone_tests super_tone_rx_tests \
+	super_tone_tx_tests swept_tone_tests t35_tests \
+	time_scale_tests tone_generate_tests v42_tests false
+SKIPPED_EXTRA_TESTS = \
+	# manual \
+	fax_decode \
+	t38_decode \
+	# slow? \
+	v22bis_tests \
+	# broken? \
+	playout_tests \
+	tone_detect_tests
+
 override_dh_auto_configure:
-	dh_auto_configure -- --enable-doc
+	dh_auto_configure -- --enable-doc --enable-tests
 
 override_dh_auto_build:
 	dh_auto_build
 	$(MAKE) html
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	dh_auto_test
+	# Regular tests:
+	cd tests && for test in $(SCRIPT_TESTS) $(EXTRA_TESTS); do \
+	    ./$$test || (echo "FAILED: $$test"; exit 1) || break; done
+
+endif
 
 override_dh_auto_install:
 	dh_auto_install

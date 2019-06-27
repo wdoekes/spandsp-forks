@@ -7,7 +7,7 @@ Subject: Fix a potential format string issue
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/tests/echo_tests.c b/tests/echo_tests.c
-index 3f11885..5808b1e 100644
+index 2bf0d68..c596b78 100644
 --- a/tests/echo_tests.c
 +++ b/tests/echo_tests.c
 @@ -621,7 +621,7 @@ static void run_test(echo_can_state_t *ctx, int16_t (*tx_source)(void), int16_t
@@ -15,7 +15,7 @@ index 3f11885..5808b1e 100644
  {
      if (quiet == false)
 -        printf(title);
-+        printf("s", title);
++        printf("%s", title);
  }
  /*- End of function --------------------------------------------------------*/
  
